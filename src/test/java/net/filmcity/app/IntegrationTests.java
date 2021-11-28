@@ -2,19 +2,20 @@ package net.filmcity.app;
 
 import net.filmcity.app.domain.Movie;
 import net.filmcity.app.repositories.MovieRepository;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,8 +30,8 @@ class IntegrationTests {
     MovieRepository movieRepository;
 
 
-    @AfterEach
-    void tearDown() {
+    @BeforeEach
+    void setUp() {
         movieRepository.deleteAll();
     }
 
@@ -55,6 +56,29 @@ class IntegrationTests {
                 .andDo(print());
     }
 
+    @Test
+    void allowsToCreateANewMovie() throws Exception {
+
+        mockMvc.perform(post("/movies")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\": \"Jurassic Park\", " +
+                        "\"coverImage\": \"https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg\"," +
+                        "\"director\": \"Steven Spielberg\"," +
+                        "\"year\": 1993," +
+                        "\"synopsis\":\"A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA.\" }")
+        ).andExpect(status().isOk());
+
+        List<Movie> movies = movieRepository.findAll();
+        assertThat(movies, hasSize(1));
+        assertThat(movies, contains(allOf(
+                hasProperty("title", is("Jurassic Park")),
+                hasProperty("coverImage", is("https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg")),
+                hasProperty("director", is("Steven Spielberg")),
+                hasProperty("year", is(1993)),
+                hasProperty("synopsis", is("A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA."))
+        )));
+    }
+
     private void addSampleMovies() {
         List<Movie> movies = List.of(
                 new Movie("Jurassic Park",
@@ -69,7 +93,6 @@ class IntegrationTests {
                         "Remy, a resident of Paris, appreciates good food and has quite a sophisticated palate. He would love to become a chef so he can create and enjoy culinary masterpieces to his heart's delight. The only problem is, Remy is a rat.")
         );
 
-        movieRepository.deleteAll();
         movieRepository.saveAll(movies);
     }
 
