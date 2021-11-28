@@ -79,11 +79,6 @@ class IntegrationTests {
         )));
     }
 
-    @Test
-    void failingTest() {
-        assertThat(true, is(false));
-    }
-
     private void addSampleMovies() {
         List<Movie> movies = List.of(
                 new Movie("Jurassic Park",
