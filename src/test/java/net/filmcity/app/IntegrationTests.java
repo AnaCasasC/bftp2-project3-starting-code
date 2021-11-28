@@ -69,6 +69,7 @@ class IntegrationTests {
                         "Remy, a resident of Paris, appreciates good food and has quite a sophisticated palate. He would love to become a chef so he can create and enjoy culinary masterpieces to his heart's delight. The only problem is, Remy is a rat.")
         );
 
+        movieRepository.deleteAll();
         movieRepository.saveAll(movies);
     }
 
