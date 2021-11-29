@@ -14,8 +14,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,6 +76,85 @@ class IntegrationTests {
                 hasProperty("year", is(1993)),
                 hasProperty("synopsis", is("A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA."))
         )));
+    }
+
+    @Test
+    void allowsToModifyAnExistingMovie() throws Exception {
+
+        Movie movie = movieRepository.save(new Movie("Jurassic Park",
+                "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg",
+                "Steven Spielberg",
+                1994,
+                "A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA."));
+
+        mockMvc.perform(put("/movies")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"id\": " + movie.getId() + "," +
+                        "\"title\": \"Jurassic Park\", " +
+                        "\"coverImage\": \"https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg\"," +
+                        "\"director\": \"Steven Spielberg\"," +
+                        "\"year\": 1993," +
+                        "\"synopsis\":\"A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA.\" }")
+        ).andExpect(status().isOk());
+
+        List<Movie> movies = movieRepository.findAll();
+        assertThat(movies, hasSize(1));
+        assertThat(movies, contains(hasProperty("year", is(1993))));
+    }
+
+    @Test
+    void allowsToDeleteAnExistingMovie() throws Exception {
+        Movie movie = movieRepository.save(new Movie("Jurassic Park",
+                "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg",
+                "Steven Spielberg",
+                1994,
+                "A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA."));
+
+        mockMvc.perform(delete("/movies/" + movie.getId()))
+                .andExpect(status().isOk());
+
+        List<Movie> movies = movieRepository.findAll();
+        assertThat(movies, hasSize(0));
+    }
+
+    @Test
+    void allowsToBookAnExistingMovie() throws Exception {
+        Movie movie = movieRepository.save(new Movie("Jurassic Park",
+                "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg",
+                "Steven Spielberg",
+                1994,
+                "A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA."));
+
+        mockMvc.perform(put("/movies/"+movie.getId()+"/book?customerName=pepita"))
+                .andExpect(status().isOk());
+
+        Movie bookedMovie = movieRepository.findById(movie.getId()).get();
+        assertThat(bookedMovie.isBooked(), equalTo(true));
+        assertThat(bookedMovie.getRenter(), equalTo("pepita"));
+
+    }
+
+    @Test
+    void allowsToReturnAMovieThatHasBeenBooked() throws Exception {
+
+        Movie movie = new Movie("Jurassic Park",
+                "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg",
+                "Steven Spielberg",
+                1994,
+                "A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA.");
+
+        movie.setBooked(true);
+        movie.setRenter("pepita");
+
+        movie = movieRepository.save(movie);
+
+        mockMvc.perform(put("/movies/"+movie.getId()+"/return"))
+                .andExpect(status().isOk());
+
+        Movie bookedMovie = movieRepository.findById(movie.getId()).get();
+        assertThat(bookedMovie.isBooked(), equalTo(false));
+        assertThat(bookedMovie.getRenter(), equalTo(null));
+
     }
 
     private void addSampleMovies() {

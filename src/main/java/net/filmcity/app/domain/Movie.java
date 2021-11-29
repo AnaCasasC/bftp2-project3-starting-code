@@ -13,6 +13,9 @@ public class Movie {
     private String coverImage;
     private String director;
     private int year;
+    private boolean booked = false;
+    private String renter;
+
     @Lob
     private String synopsis;
 
@@ -52,5 +55,22 @@ public class Movie {
 
     public String getSynopsis() {
         return synopsis;
+    }
+
+
+    public boolean isBooked() {
+        return booked;
+    }
+
+    public void setBooked(boolean booked) {
+        this.booked = booked;
+    }
+
+    public String getRenter() {
+        return renter;
+    }
+
+    public void setRenter(String renter) {
+        this.renter = renter;
     }
 }

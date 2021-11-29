@@ -27,4 +27,31 @@ public class MoviesController {
     public Movie createMovie(@RequestBody Movie movie) {
         return movieRepository.save(movie);
     }
+
+    @PutMapping("/movies")
+    public Movie updateMovie(@RequestBody Movie movie) {
+        return movieRepository.save(movie);
+    }
+
+    @DeleteMapping("/movies/{id}")
+    public void deleteMovie(@PathVariable Long id) {
+        movieRepository.deleteById(id);
+    }
+
+    @PutMapping("/movies/{id}/book")
+    public Movie bookMovie(@PathVariable Long id, @RequestParam String customerName) {
+        Movie movie = movieRepository.findById(id).orElseThrow(MovieNotFoundException::new);
+        movie.setBooked(true);
+        movie.setRenter(customerName);
+        return movieRepository.save(movie);
+    }
+
+    @PutMapping("/movies/{id}/return")
+    public Movie bookMovie(@PathVariable Long id) {
+        Movie movie = movieRepository.findById(id).orElseThrow(MovieNotFoundException::new);
+        movie.setBooked(false);
+        movie.setRenter(null);
+        return movieRepository.save(movie);
+    }
+
 }
