@@ -15,6 +15,7 @@ public class Movie {
     private int year;
     private boolean booked = false;
     private String renter;
+    private int rating;
 
     @Lob
     private String synopsis;
@@ -72,5 +73,13 @@ public class Movie {
 
     public void setRenter(String renter) {
         this.renter = renter;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
     }
 }

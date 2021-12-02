@@ -1,5 +1,6 @@
 package net.filmcity.app;
 
+import jdk.jfr.ContentType;
 import net.filmcity.app.domain.Movie;
 import net.filmcity.app.repositories.MovieRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -154,6 +155,27 @@ class IntegrationTests {
         Movie bookedMovie = movieRepository.findById(movie.getId()).get();
         assertThat(bookedMovie.isBooked(), equalTo(false));
         assertThat(bookedMovie.getRenter(), equalTo(null));
+
+    }
+
+    @Test
+    void allowsToRateAMovie() throws Exception {
+        Movie movie = movieRepository.save(new Movie("Jurassic Park",
+                "https://www.themoviedb.org/t/p/w600_and_h900_bestv2/oU7Oq2kFAAlGqbU4VoAE36g4hoI.jpg",
+                "Steven Spielberg",
+                1994,
+                "A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA."));
+
+
+        mockMvc.perform(
+                put("/movies/"+ movie.getId()+"/rating")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{ \"score\": 4 }"))
+                .andExpect(status().isOk());
+
+        Movie updatedMovie = movieRepository.findById(movie.getId()).get();
+
+        assertThat(updatedMovie.getRating(), equalTo(4));
 
     }
 
